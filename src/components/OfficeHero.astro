@@ -1,0 +1,32 @@
+---
+import { ESCRIBANIAS, DEFAULT_NAME, type Escribania } from "../lib/escribanias";
+
+interface Props {
+  office?: Escribania | null;
+}
+const { office = null } = Astro.props;
+const sorted = ESCRIBANIAS.slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
+---
+
+<section class="hero" aria-live="polite">
+  <p class="hero__eyebrow">Turnero online · Demo</p>
+  <h1 id="o-nombre">{office ? office.nombre : DEFAULT_NAME}</h1>
+  <div id="o-info" class="hero__info">
+    {
+      office && (
+        <>
+          <p>Registro Nº {office.registro} · {office.titular}</p>
+          <p>{office.direccion}</p>
+          <p>Tel. {office.telefono}</p>
+        </>
+      )
+    }
+  </div>
+  <div id="o-pick" hidden={!!office}>
+    <p>Elegí una escribanía para ver la demo personalizada:</p>
+    <select id="o-select" aria-label="Elegir escribanía">
+      <option value="">Elegí una escribanía…</option>
+      {sorted.map((d) => <option value={d.slug}>{d.nombre}</option>)}
+    </select>
+  </div>
+</section>

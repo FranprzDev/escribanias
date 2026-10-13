@@ -1,0 +1,25 @@
+---
+import { TRAMITES } from "../lib/tramites";
+---
+
+<section class="section" id="requisitos">
+  <div class="head">
+    <h2>Qué traer a cada trámite</h2>
+    <p class="head__sub">Llegá con todo listo y evitá una segunda visita.</p>
+  </div>
+  <div class="req-grid">
+    {
+      TRAMITES.map((t) => (
+        <article class="req-card">
+          <h3>{t.nombre}</h3>
+          <p class="req-card__dur">{t.duracion} aprox.</p>
+          <ul>
+            {t.requisitos.map((r) => (
+              <li>{r}</li>
+            ))}
+          </ul>
+        </article>
+      ))
+    }
+  </div>
+</section>

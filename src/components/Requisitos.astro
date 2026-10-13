@@ -1,25 +1,30 @@
 ---
 import { TRAMITES } from "../lib/tramites";
+import { TRAMITE_ICON } from "../lib/icons";
+import Icon from "./Icon.astro";
 ---
 
-<section class="section" id="requisitos">
-  <div class="head">
-    <h2>Qué traer a cada trámite</h2>
-    <p class="head__sub">Llegá con todo listo y evitá una segunda visita.</p>
+<section class="section reqlist" id="requisitos" aria-labelledby="req-title">
+  <div class="section__head">
+    <h2 id="req-title">Qué traer a cada trámite</h2>
+    <p class="section__sub">Llegá con todo listo y evitá una segunda visita.</p>
   </div>
-  <div class="req-grid">
+  <ul class="reqlist__rows">
     {
       TRAMITES.map((t) => (
-        <article class="req-card">
-          <h3>{t.nombre}</h3>
-          <p class="req-card__dur">{t.duracion} aprox.</p>
-          <ul>
+        <li class="reqlist__row">
+          <div class="reqlist__name">
+            <span class="reqlist__ico"><Icon name={TRAMITE_ICON[t.nombre] ?? "help"} size={20} /></span>
+            <h3>{t.nombre}</h3>
+            <span class="reqlist__dur">{t.duracion}</span>
+          </div>
+          <ul class="ticks">
             {t.requisitos.map((r) => (
-              <li>{r}</li>
+              <li><Icon name="check" size={16} />{r}</li>
             ))}
           </ul>
-        </article>
+        </li>
       ))
     }
-  </div>
+  </ul>
 </section>

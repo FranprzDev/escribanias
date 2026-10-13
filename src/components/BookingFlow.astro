@@ -1,65 +1,106 @@
 ---
 import { TRAMITES } from "../lib/tramites";
+import { TRAMITE_ICON } from "../lib/icons";
+import { DEFAULT_NAME, displayName, shortAddress, type Escribania } from "../lib/escribanias";
+import Icon from "./Icon.astro";
+interface Props {
+  office?: Escribania | null;
+}
+const { office = null } = Astro.props;
+const lugar = office ? shortAddress(office.direccion) || displayName(office.nombre) : DEFAULT_NAME;
 ---
 
-<section class="section" id="turno">
-  <div class="head">
-    <h2>Sacá tu turno en cuatro pasos.</h2>
-    <p class="head__sub">Sin llamadas ni esperas: elegí el trámite, el horario y listo.</p>
-  </div>
-  <ol class="steps" id="bar">
-    <li class="on">1 · Trámite</li><li>2 · Fecha</li><li>3 · Datos</li><li>4 · Confirmar</li>
-  </ol>
-
-  <div id="s1">
-    <div class="opt-grid" id="tramites">
-      {
-        TRAMITES.map((t) => (
-          <button type="button" class="opt" aria-pressed="false" data-tramite={t.nombre}>
-            {t.nombre}
-            <small>{t.duracion} aprox.</small>
-          </button>
-        ))
-      }
-    </div>
-    <div class="aside" id="reqs" hidden></div>
-  </div>
-
-  <div id="s2" hidden>
-    <p class="label">Día</p>
-    <div class="days" id="days"></div>
-    <p class="label">Horario <small>(tachado = ocupado)</small></p>
-    <div class="opt-grid slots" id="slots"></div>
-  </div>
-
-  <div id="s3" hidden>
-    <form class="form" id="form" novalidate>
-      <label>Nombre y apellido<input name="nombre" autocomplete="name" /><span class="err"></span></label>
-      <label>DNI<input name="dni" inputmode="numeric" placeholder="Sin puntos, ej. 30123456" /><span class="err"></span></label>
-      <label>WhatsApp<input name="wa" inputmode="tel" placeholder="Ej. 381 5123456" /><span class="err"></span></label>
-      <label>Email<input name="email" type="email" autocomplete="email" /><span class="err"></span></label>
-    </form>
-  </div>
-
-  <div id="s4" hidden>
-    <dl class="summary" id="summary"></dl>
-  </div>
-
-  <div id="done" hidden>
-    <aside class="callout" aria-label="Turno confirmado">
-      <p class="callout__head">Turno confirmado</p>
-      <p class="code" id="code"></p>
-      <p class="callout__lead" id="done-lead"></p>
-      <p class="fineprint">Presentate 10 minutos antes con tu DNI. Es una demo: no se envió ningún turno real.</p>
-      <div class="links">
-        <a class="btn" id="gcal" rel="noopener" target="_blank">Agregar a Google Calendar</a>
-        <button class="btn" type="button" id="again">Sacar otro turno</button>
-      </div>
+<section class="book" id="turno" aria-labelledby="book-title">
+  <div class="book__card">
+    <aside class="rail" aria-label="Tu turno">
+      <h2 class="rail__title" id="book-title">Reservá tu turno</h2>
+      <p class="rail__lead">Elegí el trámite, el día y el horario. Te confirmamos al instante.</p>
+      <dl class="rail__sum" id="rail" aria-live="polite">
+        <div class="rail__row" data-k="tramite"><dt><Icon name="scroll" size={18} />Trámite</dt><dd>Sin elegir</dd></div>
+        <div class="rail__row" data-k="duracion"><dt><Icon name="clock" size={18} />Duración</dt><dd>Sin elegir</dd></div>
+        <div class="rail__row" data-k="fecha"><dt><Icon name="calendar" size={18} />Día y hora</dt><dd>Sin elegir</dd></div>
+        <div class="rail__row" data-k="lugar"><dt><Icon name="pin" size={18} />Lugar</dt><dd>{lugar}</dd></div>
+      </dl>
     </aside>
-  </div>
 
-  <div class="flow-nav" id="nav">
-    <button class="btn" type="button" id="back" hidden>Volver</button>
-    <button class="btn btn--primary" type="button" id="next" disabled>Continuar</button>
+    <div class="flow">
+      <ol class="steps" id="bar" aria-label="Pasos">
+        <li class="on"><span class="steps__n">1</span><span class="steps__t">Trámite</span></li>
+        <li><span class="steps__n">2</span><span class="steps__t">Día y hora</span></li>
+        <li><span class="steps__n">3</span><span class="steps__t">Tus datos</span></li>
+        <li><span class="steps__n">4</span><span class="steps__t">Confirmar</span></li>
+      </ol>
+
+      <div class="step" id="s1">
+        <h3 class="step__title">¿Qué trámite necesitás?</h3>
+        <div class="opts" id="tramites">
+          {
+            TRAMITES.map((t) => (
+              <button type="button" class="opt" aria-pressed="false" data-tramite={t.nombre}>
+                <span class="opt__ico"><Icon name={TRAMITE_ICON[t.nombre] ?? "help"} size={22} /></span>
+                <span class="opt__body">
+                  <span class="opt__name">{t.nombre}</span>
+                  <span class="opt__meta">{t.duracion} aprox.</span>
+                </span>
+                <span class="opt__check"><Icon name="check" size={16} /></span>
+              </button>
+            ))
+          }
+        </div>
+        <div class="reqs" id="reqs" hidden></div>
+      </div>
+
+      <div class="step" id="s2" hidden>
+        <h3 class="step__title">Elegí el día</h3>
+        <div class="days" id="days"></div>
+        <div class="slots-head">
+          <h3 class="step__title">Elegí el horario</h3>
+          <p class="legend"><span class="legend__free"></span>Libre <span class="legend__busy"></span>Ocupado</p>
+        </div>
+        <div class="slots" id="slots"></div>
+      </div>
+
+      <div class="step" id="s3" hidden>
+        <h3 class="step__title">Tus datos</h3>
+        <form class="form" id="form" novalidate>
+          <label class="field">Nombre y apellido<input name="nombre" autocomplete="name" /><span class="err"></span></label>
+          <label class="field">DNI<input name="dni" inputmode="numeric" placeholder="Sin puntos, ej. 30123456" /><span class="err"></span></label>
+          <label class="field">WhatsApp<input name="wa" inputmode="tel" autocomplete="tel" placeholder="Ej. 381 5123456" /><span class="err"></span></label>
+          <label class="field">Email<input name="email" type="email" autocomplete="email" placeholder="nombre@correo.com" /><span class="err"></span></label>
+        </form>
+        <p class="fineprint"><Icon name="shield" size={16} />Usamos tus datos sólo para este turno y para recordártelo por WhatsApp.</p>
+      </div>
+
+      <div class="step" id="s4" hidden>
+        <h3 class="step__title">Revisá y confirmá</h3>
+        <dl class="summary" id="summary"></dl>
+      </div>
+
+      <div class="step" id="done" hidden>
+        <article class="constancia" aria-labelledby="done-title">
+          <header class="constancia__head">
+            <span class="constancia__seal" id="done-seal" aria-hidden="true"></span>
+            <div>
+              <p class="constancia__kicker">Constancia de turno</p>
+              <h3 class="constancia__title" id="done-title">Tu turno está confirmado</h3>
+            </div>
+          </header>
+          <p class="constancia__code-label">Código</p>
+          <p class="constancia__code" id="code"></p>
+          <p class="constancia__lead" id="done-lead"></p>
+          <div class="constancia__bring" id="done-bring"></div>
+          <p class="fineprint">Presentate 10 minutos antes con tu DNI. Es una demo: no se reservó ningún turno real.</p>
+          <div class="actions">
+            <a class="btn btn--primary" id="gcal" rel="noopener" target="_blank"><Icon name="calendar" size={18} />Agregar a Google Calendar</a>
+            <button class="btn btn--ghost" type="button" id="again">Sacar otro turno</button>
+          </div>
+        </article>
+      </div>
+
+      <div class="flow-nav" id="nav">
+        <button class="btn btn--ghost" type="button" id="back" hidden><Icon name="left" size={18} />Volver</button>
+        <button class="btn btn--primary btn--go" type="button" id="next" disabled><span class="btn__label" id="next-label">Continuar</span><Icon name="arrowRight" size={18} /></button>
+      </div>
+    </div>
   </div>
 </section>

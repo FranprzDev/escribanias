@@ -1,6 +1,6 @@
 // Lógica del turnero sin DOM: agenda, disponibilidad, bloqueos, estados de
 // trámite, CSV y recordatorios. Todo vive en memoria (es una demo sin backend).
-import { DEFAULT_NAME, findEscribania, type Escribania } from "./escribanias";
+import { DEFAULT_NAME, type Escribania } from "./escribanias";
 import { ESTADOS_TRAMITE, TRAMITES, tramite, type EstadoTurno } from "./tramites";
 
 export interface Turno {
@@ -92,7 +92,8 @@ const SEED: [number, string, string, string, string, string, string][] = [
 
 export type Store = ReturnType<typeof createStore>;
 
-export function createStore(data: Escribania[], now: Date = new Date()) {
+/** Un store por página: cada página conoce sólo a SU escribanía (o ninguna, en la demo general). */
+export function createStore(office: Escribania | null, now: Date = new Date()) {
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
 
@@ -117,13 +118,12 @@ export function createStore(data: Escribania[], now: Date = new Date()) {
   const listeners = new Set<() => void>();
 
   const s = {
-    data,
     today,
     DAYS,
     WEEK,
     monday,
     firstWork,
-    office: null as Escribania | null,
+    office: office as Escribania | null,
     seeded,
     bookings: [] as Turno[],
     blocked: [] as Bloqueo[],
@@ -138,11 +138,6 @@ export function createStore(data: Escribania[], now: Date = new Date()) {
       listeners.forEach((fn) => fn());
     },
 
-    setOffice(slug: string | null) {
-      s.office = findEscribania(data, slug);
-      s.emit();
-      return s.office;
-    },
     officeName: () => (s.office ? s.office.nombre : DEFAULT_NAME),
     titular: () => (s.office?.titular ? s.office.titular : "Escribano/a titular"),
 

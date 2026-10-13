@@ -1,32 +1,37 @@
 ---
-import { ESCRIBANIAS, DEFAULT_NAME, type Escribania } from "../lib/escribanias";
+import { DEFAULT_NAME, displayName, firstPhone, HORARIO, shortAddress, type Escribania } from "../lib/escribanias";
+import Icon from "./Icon.astro";
 
 interface Props {
   office?: Escribania | null;
 }
 const { office = null } = Astro.props;
-const sorted = ESCRIBANIAS.slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
+const name = office ? displayName(office.nombre) : DEFAULT_NAME;
+const dir = office ? shortAddress(office.direccion) : "";
+const tel = office ? firstPhone(office.telefono) : "";
 ---
 
-<section class="hero" aria-live="polite">
-  <p class="hero__eyebrow">Turnero online · Demo</p>
-  <h1 id="o-nombre">{office ? office.nombre : DEFAULT_NAME}</h1>
-  <div id="o-info" class="hero__info">
-    {
-      office && (
-        <>
-          <p>Registro Nº {office.registro} · {office.titular}</p>
-          <p>{office.direccion}</p>
-          <p>Tel. {office.telefono}</p>
-        </>
-      )
-    }
-  </div>
-  <div id="o-pick" hidden={!!office}>
-    <p>Elegí una escribanía para ver la demo personalizada:</p>
-    <select id="o-select" aria-label="Elegir escribanía">
-      <option value="">Elegí una escribanía…</option>
-      {sorted.map((d) => <option value={d.slug}>{d.nombre}</option>)}
-    </select>
+<section class="office" aria-labelledby="o-nombre">
+  <div class="office__inner">
+    <div class="office__id">
+      <p class="office__kicker">Turnos online</p>
+      <h1 id="o-nombre" class="office__name">{name}</h1>
+      <p class="office__titular">
+        {office ? (
+          <>
+            {office.registro && <>Registro notarial Nº {office.registro}</>}
+            {office.registro && office.titular && <span class="sep" aria-hidden="true" />}
+            {office.titular && <>Esc. {office.titular}</>}
+          </>
+        ) : (
+          <>Así ven sus clientes el turnero de una escribanía: reservan solos, a toda hora, y usted ve todo en su panel.</>
+        )}
+      </p>
+    </div>
+    <ul id="o-info" class="office__info">
+      {dir && <li><Icon name="pin" /><span>{dir}</span></li>}
+      {tel && <li><Icon name="phone" /><span>Tel. {tel}</span></li>}
+      <li><Icon name="clock" /><span>{HORARIO}</span></li>
+    </ul>
   </div>
 </section>

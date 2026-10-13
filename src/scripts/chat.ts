@@ -3,7 +3,7 @@ import { TRAMITES, requisitos } from "../lib/tramites";
 import { fmtDay, newCode, normCode, type Store } from "../lib/turnero";
 import { byId } from "./dom";
 
-export function initChat(store: Store, doc: Document, win: Window) {
+export function initChat(store: Store, doc: Document, _win?: Window) {
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => byId<T>(id, doc);
   const chat = { mode: null as null | "name" | "code", t: "", day: null as Date | null, time: "" };
   const log = $("wa-log");
@@ -97,11 +97,5 @@ export function initChat(store: Store, doc: Document, win: Window) {
   }
   $("wa-fab").addEventListener("click", () => open(!!$("wa").hidden));
   $("wa-close").addEventListener("click", () => open(false));
-  // Al cambiar de escribanía, el chat arranca de nuevo.
-  win.addEventListener("hashchange", () => {
-    log.innerHTML = "";
-    $("wa-form").hidden = true;
-    if (!$("wa").hidden) open(true);
-  });
   return { open };
 }

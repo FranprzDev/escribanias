@@ -1,0 +1,17 @@
+---
+// Una página privada por escribanía: /e/<slug>-<token>/. El token aleatorio hace que la URL
+// no se pueda adivinar, y cada página sólo contiene los datos de SU escribanía.
+import type { GetStaticPaths } from "astro";
+import Layout from "../../layouts/Layout.astro";
+import App from "../../components/App.astro";
+import { ESCRIBANIAS } from "../../lib/data";
+import { pageId } from "../../lib/escribanias";
+
+export const getStaticPaths = (() => ESCRIBANIAS.map((office) => ({ params: { id: pageId(office) }, props: { office } }))) satisfies GetStaticPaths;
+
+const { office } = Astro.props;
+---
+
+<Layout office={office}>
+  <App office={office} />
+</Layout>

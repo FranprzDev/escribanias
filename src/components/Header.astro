@@ -1,18 +1,23 @@
 ---
-const home = import.meta.env.BASE_URL;
+import { DEFAULT_NAME, displayName, type Escribania } from "../lib/escribanias";
+import Seal from "./Seal.astro";
+import Tabs from "./Tabs.astro";
+interface Props {
+  office?: Escribania | null;
+}
+const { office = null } = Astro.props;
+const name = office ? displayName(office.nombre) : DEFAULT_NAME;
 ---
 
 <header class="topbar">
   <div class="topbar__inner">
-    <a class="brand" href={home} aria-label="Turnero · inicio">
-      <span class="brand__mark" aria-hidden="true">§</span>
-      <span class="brand__text">Turnero<span class="brand__dot">.</span></span>
+    <a class="brand" href="#top">
+      <Seal office={office} />
+      <span class="brand__text">
+        <span class="brand__name">{name}</span>
+        <span class="brand__meta">{office?.registro ? `Registro notarial Nº ${office.registro}` : "Turnero online"}</span>
+      </span>
     </a>
-    <nav class="topnav" aria-label="Secciones">
-      <a href="#turno">Turno</a>
-      <a href="#requisitos">Requisitos</a>
-      <a href="#mis">Mis turnos</a>
-      <a href="#panel">Panel</a>
-    </nav>
+    <Tabs />
   </div>
 </header>

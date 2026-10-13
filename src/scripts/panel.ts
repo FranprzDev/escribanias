@@ -1,7 +1,10 @@
 // Panel del escribano: KPIs, agenda diaria, bloqueos, estados de trámite y CSV.
 import { ESTADOS_TRAMITE, type EstadoTurno } from "../lib/tramites";
 import { addDays, dayKey, esc, fmtDay, fromMin, isWeekday, parseKey, SLOTS, toMin, type Store } from "../lib/turnero";
+import { icon } from "../lib/icons";
 import { byId } from "./dom";
+
+const chipCls = (e: string) => "chip chip--" + e.toLowerCase().replace(/\s+/g, "-").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 export function initPanel(store: Store, doc: Document, win: Window) {
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => byId<T>(id, doc);
@@ -17,25 +20,26 @@ export function initPanel(store: Store, doc: Document, win: Window) {
   function renderDay() {
     const all = store.allTurnos();
     const rows = store.dayRows(pst.day);
-    $("p-day").textContent = fmtDay(pst.day, true) + (dayKey(pst.day) === dayKey(store.today) ? " · hoy" : "") + ` · ${rows.length} turno${rows.length === 1 ? "" : "s"}`;
+    const d = fmtDay(pst.day, true);
+    $("p-day").innerHTML = `<span>${esc(d.charAt(0).toUpperCase() + d.slice(1))}${dayKey(pst.day) === dayKey(store.today) ? '<span class="today">Hoy</span>' : ""}</span><small>${rows.length} turno${rows.length === 1 ? "" : "s"}</small>`;
     const dis = (c: boolean) => (c ? " disabled" : "");
     $("p-rows").innerHTML = rows.length
       ? rows
           .map((b) => {
             const i = all.indexOf(b);
             return `<tr>
-          <th scope="row" data-label="Hora">${b.time} <small>${esc(b.code)}${b.chat ? " · chat" : ""}</small></th><td data-label="Cliente">${esc(b.nombre)}</td><td data-label="Trámite">${esc(b.tramite)}</td>
-          <td data-label="Estado"><span class="chip${b.estado === "Confirmado" ? " chip--solid" : ""}">${esc(b.estado)}</span></td>
-          <td data-label="Acciones"><div class="acts">
-            <button class="btn btn--sm" type="button" data-act="Confirmado" data-i="${i}"${dis(b.estado !== "Pendiente")}>Confirmar</button>
-            <button class="btn btn--sm" type="button" data-act="Asistió" data-i="${i}"${dis(b.estado === "Asistió")}>Marcar asistió</button>
-            <button class="btn btn--sm" type="button" data-act="No asistió" data-i="${i}"${dis(b.estado === "No asistió")}>No asistió</button>
-            <button class="btn btn--sm" type="button" data-act="Cancelado" data-i="${i}">Cancelar</button>
-            <a class="btn btn--sm btn--wa" data-act="remind" href="${esc(store.waLink(b))}" target="_blank" rel="noopener">Enviar recordatorio</a>
+          <th scope="row" data-label="Hora"><span class="t-time">${b.time}</span><small class="t-code">${esc(b.code)}${b.chat ? " · chat" : ""}</small></th><td data-label="Cliente">${esc(b.nombre)}</td><td data-label="Trámite">${esc(b.tramite)}</td>
+          <td data-label="Estado"><span class="${chipCls(b.estado)}">${esc(b.estado)}</span></td>
+          <td data-label="Acciones" class="t-acts"><div class="acts">
+            <button class="btn btn--sm ${b.estado === "Pendiente" ? "btn--primary" : "btn--ghost"}" type="button" data-act="Confirmado" data-i="${i}"${dis(b.estado !== "Pendiente")}>Confirmar</button>
+            <button class="btn btn--sm btn--ghost" type="button" data-act="Asistió" data-i="${i}"${dis(b.estado === "Asistió")}>Asistió</button>
+            <button class="btn btn--sm btn--ghost" type="button" data-act="No asistió" data-i="${i}"${dis(b.estado === "No asistió")}>No asistió</button>
+            <button class="btn btn--sm btn--ghost btn--danger" type="button" data-act="Cancelado" data-i="${i}">Cancelar</button>
+            <a class="btn btn--sm btn--wa" data-act="remind" href="${esc(store.waLink(b))}" target="_blank" rel="noopener">${icon("whatsapp", 16)}Recordar</a>
           </div></td></tr>`;
           })
           .join("")
-      : '<tr><td colspan="5" class="muted" data-label="Agenda">Sin turnos este día.</td></tr>';
+      : `<tr class="t-empty"><td colspan="5" data-label="Agenda">${icon("calendar", 18)}Sin turnos este día.</td></tr>`;
   }
   function renderTram() {
     $("t-rows").innerHTML = store
@@ -50,7 +54,7 @@ export function initPanel(store: Store, doc: Document, win: Window) {
   function renderBlocks() {
     $("blk-list").hidden = !store.blocked.length;
     $("blk-list").innerHTML = store.blocked
-      .map((b, i) => `<li><span class="checklist__item">${esc(fmtDay(parseKey(b.key), true))} <small>${b.desde} a ${b.hasta} hs</small></span><span class="chip">Bloqueado</span><span class="checklist__note"><button class="btn btn--sm" type="button" data-unblock="${i}">Desbloquear</button></span></li>`)
+      .map((b, i) => `<li class="block"><span class="block__body"><b>${esc(fmtDay(parseKey(b.key), true))}</b><span>${b.desde} a ${b.hasta} hs</span></span><button class="btn btn--sm btn--ghost" type="button" data-unblock="${i}">Desbloquear</button></li>`)
       .join("");
   }
   function render() {
@@ -58,6 +62,7 @@ export function initPanel(store: Store, doc: Document, win: Window) {
     $("p-login").textContent = `Entrar como ${titular}`;
     $("p-gate").hidden = pst.logged;
     $("p-app").hidden = !pst.logged;
+    $("p-tools").hidden = !pst.logged;
     $("p-sub").textContent = pst.logged ? `Sesión de demo: ${titular} · ${store.officeName()}.` : "Agenda, recordatorios, bloqueos y trámites en un solo lugar.";
     renderKpis();
     renderDay();

@@ -1,0 +1,16 @@
+---
+// Sello de la escribanía: monograma + número de registro (un solo tema sobrio para todas).
+import { monogram, type Escribania } from "../lib/escribanias";
+interface Props {
+  office?: Escribania | null;
+  size?: "s" | "l";
+}
+const { office = null, size = "s" } = Astro.props;
+const letter = office ? monogram(office.nombre) : "E";
+const reg = office?.registro ? `Nº ${office.registro}` : "Demo";
+---
+
+<span class={`seal seal--${size}`} aria-hidden="true">
+  <span class="seal__letter">{letter}</span>
+  <span class="seal__reg">{reg}</span>
+</span>

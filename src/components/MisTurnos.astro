@@ -1,0 +1,15 @@
+<section class="section" id="mis">
+  <div class="head">
+    <h2>Mis turnos</h2>
+    <p class="head__sub">Los turnos que sacaste en esta sesión, desde la web o por WhatsApp.</p>
+  </div>
+  <ul class="checklist" id="mis-list"></ul>
+  <div class="block">
+    <h3 class="h3">Estado de trámite</h3>
+    <form class="form form--row" id="lookup" novalidate>
+      <label>Código de turno<input name="code" autocomplete="off" placeholder="Ej. ESC-2041" /></label>
+      <button class="btn btn--primary" type="submit">Consultar</button>
+    </form>
+    <div id="lookup-out" aria-live="polite"></div>
+  </div>
+</section>

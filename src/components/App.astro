@@ -1,0 +1,36 @@
+---
+// Página completa del turnero (cliente + panel). La usan / y /[slug].
+import type { Escribania } from "../lib/escribanias";
+import Header from "./Header.astro";
+import Tabs from "./Tabs.astro";
+import OfficeHero from "./OfficeHero.astro";
+import BookingFlow from "./BookingFlow.astro";
+import Requisitos from "./Requisitos.astro";
+import MisTurnos from "./MisTurnos.astro";
+import PanelEscribano from "./PanelEscribano.astro";
+import WhatsAppBot from "./WhatsAppBot.astro";
+import Footer from "./Footer.astro";
+
+interface Props {
+  office?: Escribania | null;
+}
+const { office = null } = Astro.props;
+---
+
+<div class="page" id="top">
+  <Header />
+  <main class="main">
+    <Tabs />
+    <OfficeHero office={office} />
+    <div class="pane" id="pane-c" role="tabpanel" aria-labelledby="tab-c">
+      <BookingFlow />
+      <Requisitos />
+      <MisTurnos />
+    </div>
+    <div class="pane" id="pane-p" role="tabpanel" aria-labelledby="tab-p" hidden>
+      <PanelEscribano />
+    </div>
+  </main>
+  <Footer office={office} />
+</div>
+<WhatsAppBot />

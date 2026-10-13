@@ -1,0 +1,22 @@
+[
+  {
+    "slug": "escribania-ejemplo",
+    "nombre": "Escribanía Ejemplo",
+    "registro": "00",
+    "titular": "Apellido, Nombre",
+    "direccion": "Calle Falsa 123, San Miguel de Tucumán, Tucumán",
+    "ciudad": "San Miguel de Tucumán",
+    "telefono": "+54 381 000-0000",
+    "colores": ""
+  },
+  {
+    "slug": "escribania-demo-yerba-buena",
+    "nombre": "Escribanía Demo Yerba Buena",
+    "registro": "01",
+    "titular": "Apellido, Nombre",
+    "direccion": "Av. Aconquija 0000, Yerba Buena, Tucumán",
+    "ciudad": "Yerba Buena",
+    "telefono": "+54 381 000-0001",
+    "colores": ""
+  }
+]

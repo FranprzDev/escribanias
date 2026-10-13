@@ -1,0 +1,33 @@
+---
+import "../styles/global.css";
+import { ESCRIBANIAS, DEFAULT_NAME, themeStyle, type Escribania } from "../lib/escribanias";
+
+interface Props {
+  office?: Escribania | null;
+}
+const { office = null } = Astro.props;
+const name = office ? office.nombre : DEFAULT_NAME;
+const title = `Turnero · ${name}`;
+const description = office
+  ? `Sacá tu turno online en ${office.nombre} (${office.ciudad}): firmas, poderes, certificaciones y más.`
+  : "Demo de turnero online para escribanías: reservas, requisitos por trámite, bot de WhatsApp y panel del escribano.";
+---
+
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#14233f" />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}favicon.svg`} />
+    <title>{title}</title>
+  </head>
+  <body data-slug={office?.slug ?? ""} style={themeStyle(office) || undefined}>
+    <script type="application/json" id="demo-data" set:html={JSON.stringify(ESCRIBANIAS)} />
+    <slot />
+    <script>
+      import "../scripts/main";
+    </script>
+  </body>
+</html>

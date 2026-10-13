@@ -1,0 +1,16 @@
+---
+import { DEFAULT_NAME, type Escribania } from "../lib/escribanias";
+interface Props {
+  office?: Escribania | null;
+}
+const { office = null } = Astro.props;
+const name = office ? office.nombre : DEFAULT_NAME;
+---
+
+<footer class="foot">
+  <p id="foot-text">Demo creada por Francisco Perez para {name}. Es una demostración: no se envían turnos reales.</p>
+  <div class="links">
+    <a class="btn" href="mailto:franciscoperezdeveloper@gmail.com?subject=Turnero%20online">Escribime por email</a>
+    <a class="btn" href="https://wa.me/5493815412480" rel="noopener" target="_blank">Escribime por WhatsApp</a>
+  </div>
+</footer>

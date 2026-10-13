@@ -32,7 +32,10 @@ const check = (name, pass, extra = "") => {
   console.log(pass ? "PASS" : "FAIL", name, extra);
 };
 
-const browser = await chromium.launch();
+const data = JSON.parse(readFileSync(new URL("../src/data/escribanias.json", import.meta.url), "utf8"));
+const pageUrl = (o) => `${base}/e/${o.slug}-${o.token}/`;
+// CHROMIUM_PATH permite usar un Chromium del sistema (p. ej. /usr/bin/chromium en ARM).
+const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 try {
   // ---------- escritorio ----------
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, acceptDownloads: true });
@@ -44,8 +47,11 @@ try {
   const st = await page.evaluate(() => window.selfTest());
   check(`selfTest() en el navegador (${st.length} pruebas)`, st.every((r) => r.pass), JSON.stringify(st.filter((r) => !r.pass)));
 
-  await page.goto(`${base}/#escribania-ejemplo`);
-  check("#slug personaliza el nombre", (await page.textContent("#o-nombre")) === "Escribanía Ejemplo");
+  await page.goto(`${base}/`);
+  check("Raíz: demo neutra", (await page.textContent("#o-nombre")) === "Escribanía Demo");
+  check("Raíz: sin selector ni lista de escribanías", (await page.locator("#o-select").count()) === 0);
+  await page.goto(pageUrl(data[0]));
+  check("Página privada /e/<slug>-<token>/ personaliza el nombre", (await page.textContent("#o-nombre")) === data[0].nombre);
   await page.screenshot({ path: out + "desktop-inicio.png", fullPage: true });
 
   // Reserva completa
@@ -87,7 +93,7 @@ try {
   // Panel del escribano
   await page.click("#tab-p");
   await page.click("#p-login");
-  check("Panel: login con titular", (await page.textContent("#p-sub")).includes("Apellido, Nombre"));
+  check("Panel: login con titular", (await page.textContent("#p-sub")).includes(data[0].titular));
   const tram = await page.textContent("#t-rows");
   check("Panel: turnos de la web y del chat en Trámites", tram.includes(code) && tram.includes("Juan Gómez"));
   await page.selectOption(`#t-rows select[data-code="${code}"]`, "Listo para firmar");
@@ -99,7 +105,7 @@ try {
   await page.click("#p-next");
   check("Panel: navegar días", (await page.textContent("#p-day")) !== before);
   const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#p-csv")]);
-  check("Panel: exporta CSV", dl.suggestedFilename().startsWith("agenda-escribania-ejemplo-"), dl.suggestedFilename());
+  check("Panel: exporta CSV", dl.suggestedFilename().startsWith(`agenda-${data[0].slug}-`), dl.suggestedFilename());
   await page.screenshot({ path: out + "desktop-panel.png", fullPage: true });
   await page.click("#tab-c");
   await page.fill('#lookup [name="code"]', code);
@@ -107,15 +113,17 @@ try {
   check("Cliente ve el estado que cambió el escribano", (await page.textContent("#lookup-out")).includes("Listo para firmar"));
 
   // Ruta estática
-  await page.goto(`${base}/escribania-demo-yerba-buena/`);
-  check("Ruta /[slug] estática", (await page.textContent("#o-nombre")) === "Escribanía Demo Yerba Buena");
+  await page.goto(pageUrl(data[1]) + "#" + data[0].slug);
+  check("Otra página privada; el #hash no cambia la escribanía", (await page.textContent("#o-nombre")) === data[1].nombre);
+  const r404 = await page.goto(`${base}/${data[1].slug}/`);
+  check("La ruta adivinable /<slug>/ ya no existe", r404.status() === 404);
   check("Sin errores de JavaScript", errors.length === 0, errors.join(" | "));
   await ctx.close();
 
   // ---------- celular ----------
   const m = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const mp = await m.newPage();
-  await mp.goto(`${base}/#escribania-demo-yerba-buena`);
+  await mp.goto(pageUrl(data[1]));
   const overflow = () => mp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   check("Celular: sin scroll horizontal (cliente)", (await overflow()) <= 0, String(await overflow()));
   await mp.screenshot({ path: out + "mobile-inicio.png", fullPage: true });

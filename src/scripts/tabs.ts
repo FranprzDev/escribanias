@@ -8,10 +8,23 @@ export function initTabs(doc: Document) {
     $("pane-p").hidden = !panel;
     $("tab-c").setAttribute("aria-selected", String(!panel));
     $("tab-p").setAttribute("aria-selected", String(panel));
+    $("tab-c").tabIndex = panel ? -1 : 0;
+    $("tab-p").tabIndex = panel ? 0 : -1;
   };
   $("tab-c").addEventListener("click", () => show(false));
   $("tab-p").addEventListener("click", () => show(true));
-  // Las anclas (#turno, #panel…) no deben cambiar el hash: el hash elige la escribanía.
+  // Flechas izquierda/derecha entre pestañas (patrón ARIA tabs).
+  for (const id of ["tab-c", "tab-p"]) {
+    const t = $(id);
+    t.tabIndex = t.getAttribute("aria-selected") === "true" ? 0 : -1;
+    t.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      const toPanel = id === "tab-c";
+      show(toPanel);
+      $(toPanel ? "tab-p" : "tab-c").focus();
+    });
+  }
+  // Las anclas internas (#turno, #panel…) cambian de pestaña si hace falta y hacen scroll suave.
   doc.addEventListener(
     "click",
     (e) => {

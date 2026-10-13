@@ -1,66 +1,81 @@
-<section class="section" id="panel">
-  <div class="head">
-    <p class="head__eyebrow">Vista escribano · demo</p>
-    <h2>Panel del escribano</h2>
-    <p class="head__sub" id="p-sub">Agenda, recordatorios, bloqueos y trámites en un solo lugar.</p>
-  </div>
-  <div id="p-gate">
-    <aside class="callout" aria-label="Ingreso">
-      <p class="callout__head">Acceso de demostración</p>
-      <p class="callout__lead"><strong>Sin contraseña.</strong> Es una demo: entrás directo al panel y los cambios viven solo en esta pestaña.</p>
-      <button class="btn btn--primary" type="button" id="p-login">Entrar</button>
-    </aside>
-  </div>
-  <div class="stack" id="p-app" hidden>
-    <section class="stats" aria-live="polite">
-      <div class="stat"><span class="stat__fig" id="k-hoy">0</span><span class="stat__label">Turnos de hoy</span></div>
-      <div class="stat"><span class="stat__fig" id="k-sem">0</span><span class="stat__label">Turnos esta semana</span></div>
-      <div class="stat"><span class="stat__fig" id="k-rec">0</span><span class="stat__label">Recordatorios enviados</span></div>
-      <div class="stat"><span class="stat__fig" id="k-tra">0</span><span class="stat__label">Trámites en curso</span></div>
-    </section>
+---
+import Icon from "./Icon.astro";
+---
 
-    <div class="block">
-      <h3 class="h3">Agenda</h3>
-      <div class="dayer">
-        <button class="btn" type="button" id="p-prev" aria-label="Día anterior">‹<span class="hide-sm"> Anterior</span></button>
-        <b id="p-day" aria-live="polite"></b>
-        <button class="btn" type="button" id="p-next" aria-label="Día siguiente"><span class="hide-sm">Siguiente </span>›</button>
+<section class="section panel" id="panel" aria-labelledby="p-title">
+  <div class="panel__head">
+    <div>
+      <h2 id="p-title">Panel del escribano</h2>
+      <p class="section__sub" id="p-sub">Agenda, recordatorios, bloqueos y trámites en un solo lugar.</p>
+    </div>
+    <div class="actions" id="p-tools" hidden>
+      <button class="btn btn--ghost" type="button" id="p-csv"><Icon name="download" size={18} />Exportar agenda (CSV)</button>
+      <button class="btn btn--ghost" type="button" id="p-logout"><Icon name="logout" size={18} />Salir</button>
+    </div>
+  </div>
+
+  <div id="p-gate">
+    <div class="gate">
+      <span class="gate__ico"><Icon name="lock" size={22} /></span>
+      <div class="gate__body">
+        <h3>Acceso de demostración</h3>
+        <p>Sin contraseña: entra directo al panel. Los cambios viven sólo en esta pestaña del navegador.</p>
+      </div>
+      <button class="btn btn--primary btn--go" type="button" id="p-login">Entrar</button>
+    </div>
+  </div>
+
+  <div class="panel__app" id="p-app" hidden>
+    <dl class="kpis" aria-live="polite">
+      <div class="kpi"><dt>Turnos de hoy</dt><dd id="k-hoy">0</dd></div>
+      <div class="kpi"><dt>Turnos esta semana</dt><dd id="k-sem">0</dd></div>
+      <div class="kpi"><dt>Recordatorios enviados</dt><dd id="k-rec">0</dd></div>
+      <div class="kpi"><dt>Trámites en curso</dt><dd id="k-tra">0</dd></div>
+    </dl>
+
+    <div class="card agenda">
+      <div class="card__head">
+        <h3>Agenda</h3>
+        <div class="dayer">
+          <button class="iconbtn" type="button" id="p-prev" aria-label="Día anterior"><Icon name="left" size={20} /></button>
+          <b id="p-day" aria-live="polite"></b>
+          <button class="iconbtn" type="button" id="p-next" aria-label="Día siguiente"><Icon name="right" size={20} /></button>
+        </div>
       </div>
       <div class="table-wrap">
         <table class="rtable">
-          <thead><tr><th scope="col">Hora</th><th scope="col">Cliente</th><th scope="col">Trámite</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
+          <thead><tr><th scope="col">Hora</th><th scope="col">Cliente</th><th scope="col">Trámite</th><th scope="col">Estado</th><th scope="col"><span class="sr-only">Acciones</span></th></tr></thead>
           <tbody id="p-rows"></tbody>
         </table>
       </div>
-      <p class="fineprint">«Enviar recordatorio» abre WhatsApp con el mensaje listo. Los turnos que se sacan en la web o por chat aparecen acá al instante.</p>
+      <p class="fineprint"><Icon name="whatsapp" size={16} />«Recordar» abre WhatsApp con el mensaje listo. Los turnos de la web y del chat aparecen acá al instante.</p>
     </div>
 
-    <div class="block">
-      <h3 class="h3">Bloquear horario</h3>
-      <form class="form form--row" id="blk-form" novalidate>
-        <label>Fecha<input type="date" name="fecha" id="blk-fecha" /></label>
-        <label>Desde<select name="desde" id="blk-desde"></select></label>
-        <label>Hasta<select name="hasta" id="blk-hasta"></select></label>
-        <button class="btn btn--primary" type="submit">Bloquear</button>
-      </form>
-      <p class="msg" id="blk-msg" aria-live="polite"></p>
-      <ul class="checklist" id="blk-list" hidden></ul>
-    </div>
-
-    <div class="block">
-      <h3 class="h3">Trámites</h3>
-      <div class="table-wrap">
-        <table class="rtable">
-          <thead><tr><th scope="col">Código</th><th scope="col">Cliente</th><th scope="col">Trámite</th><th scope="col">Estado</th></tr></thead>
-          <tbody id="t-rows"></tbody>
-        </table>
+    <div class="panel__cols">
+      <div class="card">
+        <div class="card__head"><h3>Bloquear horario</h3></div>
+        <form class="form form--stack" id="blk-form" novalidate>
+          <label class="field">Fecha<input type="date" name="fecha" id="blk-fecha" /></label>
+          <div class="form__pair">
+            <label class="field">Desde<select name="desde" id="blk-desde"></select></label>
+            <label class="field">Hasta<select name="hasta" id="blk-hasta"></select></label>
+          </div>
+          <button class="btn btn--primary" type="submit"><Icon name="ban" size={18} />Bloquear</button>
+        </form>
+        <p class="msg" id="blk-msg" aria-live="polite"></p>
+        <ul class="blocks" id="blk-list" hidden></ul>
       </div>
-      <p class="fineprint">El cliente ve el cambio al consultar su código en la web o en el chat.</p>
-    </div>
 
-    <div class="links">
-      <button class="btn btn--primary" type="button" id="p-csv">Exportar agenda (CSV)</button>
-      <button class="btn" type="button" id="p-logout">Salir del panel</button>
+      <div class="card">
+        <div class="card__head"><h3>Trámites</h3></div>
+        <div class="table-wrap">
+          <table class="rtable rtable--tram">
+            <thead><tr><th scope="col">Código</th><th scope="col">Cliente</th><th scope="col">Trámite</th><th scope="col">Estado</th></tr></thead>
+            <tbody id="t-rows"></tbody>
+          </table>
+        </div>
+        <p class="fineprint"><Icon name="info" size={16} />El cliente ve el cambio al consultar su código en la web o en el chat.</p>
+      </div>
     </div>
   </div>
 </section>

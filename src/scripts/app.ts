@@ -5,21 +5,21 @@ import { createStore } from "../lib/turnero";
 import { initBooking } from "./booking";
 import { initChat } from "./chat";
 import { initMis } from "./mis";
-import { initOffice, renderOffice } from "./office";
+import { renderOffice } from "./office";
 import { initPanel } from "./panel";
 import { initTabs } from "./tabs";
 
 export function initApp(doc: Document = document, win: Window = window, now: Date = new Date()) {
-  const data = JSON.parse(doc.getElementById("demo-data")?.textContent || "[]") as Escribania[];
-  const store = createStore(data, now);
-  store.subscribe(() => renderOffice(store, doc));
+  // Sólo la escribanía de esta página (o null en la demo general).
+  const office = JSON.parse(doc.getElementById("office-data")?.textContent || "null") as Escribania | null;
+  const store = createStore(office, now);
   const tabs = initTabs(doc);
   const booking = initBooking(store, doc);
   initMis(store, doc);
   const panel = initPanel(store, doc, win);
   const chat = initChat(store, doc, win);
-  initOffice(store, doc, win); // resuelve el slug y dispara el primer render
-  const selfTest = () => runSelfTest(data, now);
+  renderOffice(store, doc);
+  const selfTest = () => runSelfTest(office, now);
   Object.assign(win, { selfTest, turnero: store });
   if (/[?&]selftest\b/.test(win.location.search)) console.table(selfTest());
   return { store, booking, panel, chat, tabs, selfTest };

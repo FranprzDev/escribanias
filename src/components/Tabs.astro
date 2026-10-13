@@ -1,4 +1,8 @@
+---
+import Icon from "./Icon.astro";
+---
+
 <div class="tabs" role="tablist" aria-label="Vista">
-  <button type="button" role="tab" id="tab-c" aria-selected="true" aria-controls="pane-c">Clientes</button>
-  <button type="button" role="tab" id="tab-p" aria-selected="false" aria-controls="pane-p">Panel del escribano</button>
+  <button type="button" role="tab" id="tab-c" aria-selected="true" aria-controls="pane-c"><Icon name="calendar" size={18} /><span>Reservar turno</span></button>
+  <button type="button" role="tab" id="tab-p" aria-selected="false" aria-controls="pane-p"><Icon name="list" size={18} /><span>Panel del escribano</span></button>
 </div>

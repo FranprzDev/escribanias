@@ -1,15 +1,26 @@
-<section class="section" id="mis">
-  <div class="head">
-    <h2>Mis turnos</h2>
-    <p class="head__sub">Los turnos que sacaste en esta sesión, desde la web o por WhatsApp.</p>
-  </div>
-  <ul class="checklist" id="mis-list"></ul>
-  <div class="block">
-    <h3 class="h3">Estado de trámite</h3>
-    <form class="form form--row" id="lookup" novalidate>
-      <label>Código de turno<input name="code" autocomplete="off" placeholder="Ej. ESC-2041" /></label>
-      <button class="btn btn--primary" type="submit">Consultar</button>
-    </form>
-    <div id="lookup-out" aria-live="polite"></div>
+---
+import Icon from "./Icon.astro";
+---
+
+<section class="section mis" id="mis" aria-label="Mis turnos y estado de trámite">
+  <div class="mis__grid">
+    <div class="mis__col">
+      <h2>Mis turnos</h2>
+      <p class="section__sub">Los que sacaste en esta visita, desde la web o por WhatsApp.</p>
+      <ul class="turnos" id="mis-list"></ul>
+    </div>
+    <div class="mis__col mis__col--lookup">
+      <h2>Estado de tu trámite</h2>
+      <p class="section__sub">Ingresá el código de tu turno para ver en qué etapa está.</p>
+      <form class="lookup" id="lookup" novalidate>
+        <label class="field field--inline">
+          <span class="sr-only">Código de turno</span>
+          <span class="field__ico"><Icon name="search" size={18} /></span>
+          <input name="code" autocomplete="off" placeholder="Ej. ESC-2041" aria-label="Código de turno" />
+        </label>
+        <button class="btn btn--primary" type="submit">Consultar</button>
+      </form>
+      <div id="lookup-out" aria-live="polite"></div>
+    </div>
   </div>
 </section>

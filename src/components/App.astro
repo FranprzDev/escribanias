@@ -1,8 +1,7 @@
 ---
-// Página completa del turnero (cliente + panel). La usan / y /[slug].
+// Página completa del turnero (cliente + panel). La usan / (demo neutra) y /e/<slug>-<token>/.
 import type { Escribania } from "../lib/escribanias";
 import Header from "./Header.astro";
-import Tabs from "./Tabs.astro";
 import OfficeHero from "./OfficeHero.astro";
 import BookingFlow from "./BookingFlow.astro";
 import Requisitos from "./Requisitos.astro";
@@ -17,13 +16,13 @@ interface Props {
 const { office = null } = Astro.props;
 ---
 
+<a class="skip" href="#main">Saltar al contenido</a>
 <div class="page" id="top">
-  <Header />
-  <main class="main">
-    <Tabs />
-    <OfficeHero office={office} />
+  <Header office={office} />
+  <main class="main" id="main" tabindex="-1">
     <div class="pane" id="pane-c" role="tabpanel" aria-labelledby="tab-c">
-      <BookingFlow />
+      <OfficeHero office={office} />
+      <BookingFlow office={office} />
       <Requisitos />
       <MisTurnos />
     </div>

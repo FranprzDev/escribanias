@@ -1,30 +1,43 @@
 ---
 import "../styles/global.css";
-import { ESCRIBANIAS, DEFAULT_NAME, themeStyle, type Escribania } from "../lib/escribanias";
+import { DEFAULT_NAME, displayName, type Escribania } from "../lib/escribanias";
 
 interface Props {
   office?: Escribania | null;
 }
 const { office = null } = Astro.props;
-const name = office ? office.nombre : DEFAULT_NAME;
+const name = office ? displayName(office.nombre) : DEFAULT_NAME;
 const title = `Turnero · ${name}`;
+// Al cliente sólo llegan los campos que usa, y sólo de esta escribanía (nunca el token).
+const clientOffice = office
+  ? { slug: office.slug, nombre: name, registro: office.registro, titular: office.titular, direccion: office.direccion, ciudad: office.ciudad, telefono: office.telefono }
+  : null;
 const description = office
-  ? `Sacá tu turno online en ${office.nombre} (${office.ciudad}): firmas, poderes, certificaciones y más.`
+  ? `Sacá tu turno online en ${name} (${office.ciudad}): firmas, poderes, certificaciones y más.`
   : "Demo de turnero online para escribanías: reservas, requisitos por trámite, bot de WhatsApp y panel del escribano.";
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
 ---
 
 <!doctype html>
 <html lang="es-AR">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="no-referrer" />
     <meta name="theme-color" content="#14233f" />
-    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}favicon.svg`} />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="preload" href={`${base}fonts/newsreader-var.woff2`} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={`${base}fonts/inter-var.woff2`} as="font" type="font/woff2" crossorigin />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary" />
     <title>{title}</title>
   </head>
-  <body data-slug={office?.slug ?? ""} style={themeStyle(office) || undefined}>
-    <script type="application/json" id="demo-data" set:html={JSON.stringify(ESCRIBANIAS)} />
+  <body>
+    <script type="application/json" id="office-data" set:html={JSON.stringify(clientOffice).replace(/</g, "\\u003c")} />
     <slot />
     <script>
       import "../scripts/main";

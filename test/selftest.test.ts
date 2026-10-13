@@ -14,10 +14,12 @@ const fechas = {
 describe("selfTest", () => {
   for (const [nombre, fecha] of Object.entries(fechas)) {
     it(`pasa completo en ${nombre}`, () => {
-      const res = runSelfTest(data, fecha);
-      expect(res.length).toBeGreaterThan(15);
-      const fallas = res.filter((r) => !r.pass).map((r) => r.test);
-      expect(fallas).toEqual([]);
+      for (const office of [null, ...data]) {
+        const res = runSelfTest(office, fecha);
+        expect(res.length).toBeGreaterThan(15);
+        const fallas = res.filter((r) => !r.pass).map((r) => r.test);
+        expect(fallas).toEqual([]);
+      }
     });
   }
 });

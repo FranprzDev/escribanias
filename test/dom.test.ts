@@ -4,9 +4,10 @@ import { experimental_AstroContainer as AstroContainer } from "astro/container";
 import { Window } from "happy-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import Index from "../src/pages/index.astro";
-import SlugPage from "../src/pages/[slug].astro";
+import OfficePage from "../src/pages/e/[id].astro";
 import data from "../src/data/escribanias.json";
 import { initApp } from "../src/scripts/app";
+import { shortAddress } from "../src/lib/escribanias";
 
 const NOW = new Date(2026, 9, 14, 10); // miércoles
 
@@ -35,7 +36,7 @@ let slugHTML = "";
 beforeEach(async () => {
   const c = await AstroContainer.create();
   indexHTML ||= await c.renderToString(Index);
-  slugHTML ||= await c.renderToString(SlugPage, { params: { slug: data[1].slug }, props: { office: data[1] } });
+  slugHTML ||= await c.renderToString(OfficePage, { params: { id: `${data[1].slug}-${data[1].token}` }, props: { office: data[1] } });
 });
 
 describe("turnero en el DOM", () => {
@@ -91,7 +92,7 @@ describe("turnero en el DOM", () => {
     const conf = $("p-rows").querySelector<HTMLButtonElement>('[data-act="Confirmado"]:not([disabled])');
     if (conf) {
       click(conf);
-      expect($("p-rows").innerHTML).toContain("chip--solid");
+      expect($("p-rows").innerHTML).toContain("chip--confirmado");
     }
     // recordatorio
     const before = Number($("k-rec").textContent);
@@ -152,36 +153,50 @@ describe("turnero en el DOM", () => {
     expect($("wa-log").textContent).toContain(`Trámite ${b.code}: Recibido`);
   });
 
-  it("personaliza por #slug", async () => {
-    const app = await mount(indexHTML, "#" + data[0].slug);
-    expect($("o-nombre").textContent).toBe(data[0].nombre);
-    expect($("o-pick").hidden).toBe(true);
-    expect($("o-info").textContent).toContain(data[0].direccion);
-    expect(document.title).toBe(`Turnero · ${data[0].nombre}`);
-    expect($("p-login").textContent).toBe(`Entrar como ${data[0].titular}`);
-    expect(app.store.office?.slug).toBe(data[0].slug);
+  it("la página privada muestra SOLO su escribanía", async () => {
+    const app = await mount(slugHTML);
+    const o = data[1];
+    expect($("o-nombre").textContent).toBe(o.nombre);
+    expect($("o-info").textContent).toContain(shortAddress(o.direccion));
+    expect(document.title).toBe(`Turnero · ${o.nombre}`);
+    expect($("p-login").textContent).toBe(`Entrar como ${o.titular}`);
+    expect(app.store.office?.slug).toBe(o.slug);
+    expect(document.getElementById("o-select")).toBeNull();
+    for (const other of data.filter((d) => d !== o)) {
+      expect(slugHTML).not.toContain(other.slug);
+      expect(slugHTML).not.toContain(other.nombre);
+    }
+    // el token no viaja en los datos embebidos
+    expect($("office-data").textContent).not.toContain(o.token!);
   });
 
-  it("sin slug muestra el selector; slug desconocido vuelve al nombre por defecto", async () => {
-    await mount(indexHTML, "#no-existe");
-    expect($("o-nombre").textContent).toBe("Escribanía Demo");
-    expect($("o-pick").hidden).toBe(false);
-    expect($("o-select").querySelectorAll("option").length).toBe(data.length + 1);
-  });
-
-  it("ruta estática /[slug] prerenderiza la escribanía y el #slug la puede cambiar", async () => {
-    expect(slugHTML).toContain(data[1].nombre);
-    expect(slugHTML).toContain(`data-slug="${data[1].slug}"`);
-    await mount(slugHTML);
+  it("un #hash no cambia la escribanía (ya no hay selector)", async () => {
+    const app = await mount(slugHTML, "#" + data[0].slug);
+    expect(app.store.office?.slug).toBe(data[1].slug);
     expect($("o-nombre").textContent).toBe(data[1].nombre);
-    await mount(slugHTML, "#" + data[0].slug);
-    expect($("o-nombre").textContent).toBe(data[0].nombre);
   });
 
-  it("los anclas internas no cambian la escribanía", async () => {
-    await mount(indexHTML, "#" + data[0].slug);
+  it("la raíz es una demo neutra, sin datos de escribanías reales", async () => {
+    const app = await mount(indexHTML);
+    expect($("o-nombre").textContent).toBe("Escribanía Demo");
+    expect(app.store.office).toBeNull();
+    for (const d of data) {
+      expect(indexHTML).not.toContain(d.slug);
+      expect(indexHTML).not.toContain(d.nombre);
+    }
+  });
+
+  it("noindex y no-referrer en todas las páginas", () => {
+    for (const h of [indexHTML, slugHTML]) {
+      expect(h).toMatch(/<meta name="robots" content="noindex, nofollow/);
+      expect(h).toContain('<meta name="referrer" content="no-referrer"');
+    }
+  });
+
+  it("los anclas internas cambian de pestaña sin tocar el hash", async () => {
+    await mount(slugHTML);
     click(document.querySelector('a[href="#panel"]'));
     expect($("pane-p").hidden).toBe(false);
-    expect(window.location.hash).toBe("#" + data[0].slug);
+    expect(window.location.hash).toBe("");
   });
 });

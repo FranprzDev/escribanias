@@ -5,9 +5,9 @@ Demo de un sistema de turnos online para escribanías, hecho con [Astro](https:/
 - **Clientes:** reserva de turnos en 4 pasos (trámite → día y horario → datos → confirmación), requisitos por trámite, link para agregar el turno a Google Calendar, "Mis turnos" y consulta del estado de un trámite por código.
 - **Bot de WhatsApp simulado:** sacar turno, consultar el estado del trámite, ver requisitos y contacto de la escribanía.
 - **Panel del escribano:** indicadores, agenda diaria (confirmar, asistió / no asistió, cancelar, recordatorio por WhatsApp), bloqueo de horarios, estado de cada trámite y exportación de la agenda a CSV.
-- **Personalización por escribanía:** con `#slug` en la URL (`/#escribania-ejemplo`) o con una página estática propia (`/escribania-ejemplo/`).
+- **Una página privada por escribanía:** `/e/<slug>-<token>/`, con un token aleatorio de 8 caracteres que hace la URL no adivinable. Cada página contiene sólo los datos de SU escribanía (no hay lista compartida ni cambio por `#slug`). La raíz `/` es una demo neutra ("Escribanía Demo"). Todo lleva `noindex` y `robots.txt` bloquea a los buscadores.
 
-> Es una demo: los turnos viven en memoria, en la pestaña del navegador, y se pierden al recargar. No se envía nada real. Este repo trae solo **escribanías ficticias de ejemplo**.
+> Es una demo: los turnos viven en memoria, en la pestaña del navegador, y se pierden al recargar. No se envía nada real. Este repo trae los datos públicos de las escribanías de Tucumán que usa el sitio en producción (nombre, registro, titular, dirección y teléfono).
 
 ## Requisitos
 
@@ -23,7 +23,7 @@ npm run build      # chequeo de tipos (astro check) + sitio estático en dist/
 npm run preview    # sirve dist/ para revisarlo
 ```
 
-Abrí `http://localhost:4321/#escribania-ejemplo` o `http://localhost:4321/escribania-demo-yerba-buena/`.
+Abrí `http://localhost:4321/` (demo neutra) o la página privada de un ejemplo, p. ej. `http://localhost:4321/e/escribania-ejemplo-<token>/` (el token está en `src/data/escribanias.json`).
 
 ## Tests
 
@@ -33,12 +33,12 @@ npm test           # vitest: lógica, datos y DOM renderizado por Astro
 
 - `test/selftest.test.ts`: corre la autoprueba (`src/lib/selftest.ts`) en distintos días de la semana.
 - `test/data.test.ts`: valida `src/data/escribanias.json` (campos obligatorios, slugs únicos y aptos para URL).
-- `test/dom.test.ts`: renderiza las páginas con la Container API de Astro y prueba el flujo completo en un DOM (happy-dom): reserva, chat, panel, `#slug` y rutas `/[slug]`.
+- `test/dom.test.ts`: renderiza las páginas con la Container API de Astro y prueba el flujo completo en un DOM (happy-dom): reserva, chat, panel, aislamiento de cada página privada y demo neutra en la raíz.
 
 Prueba de punta a punta en un navegador real (Chromium), con capturas de escritorio y celular en `e2e-output/`:
 
 ```bash
-npx playwright install chromium   # una sola vez
+npx playwright install chromium   # una sola vez (en ARM: CHROMIUM_PATH=/usr/bin/chromium)
 npm run build
 npm run test:e2e
 ```
@@ -51,11 +51,12 @@ En el navegador también podés abrir la página con `?selftest` o ejecutar `sel
 ├── astro.config.mjs          # salida estática; SITE y BASE_PATH por variable de entorno
 ├── public/favicon.svg
 ├── src/
-│   ├── data/escribanias.json # datos de cada escribanía (solo ejemplos)
+│   ├── data/escribanias.json # datos de cada escribanía (los de producción)
 │   ├── layouts/Layout.astro  # <head>, datos embebidos y script del cliente
 │   ├── pages/
-│   │   ├── index.astro       # demo general (+ selector y #slug)
-│   │   └── [slug].astro      # una página por escribanía (getStaticPaths)
+│   │   ├── index.astro       # demo neutra, sin datos reales
+│   │   ├── 404.astro
+│   │   └── e/[id].astro      # una página privada por escribanía: /e/<slug>-<token>/
 │   ├── components/
 │   │   ├── App.astro         # arma la página completa
 │   │   ├── Header.astro      # barra superior
@@ -68,15 +69,16 @@ En el navegador también podés abrir la página con `?selftest` o ejecutar `sel
 │   │   ├── WhatsAppBot.astro
 │   │   └── Footer.astro
 │   ├── lib/                  # lógica sin DOM (testeable)
-│   │   ├── escribanias.ts    # tipos, búsqueda por slug y colores
+│   │   ├── escribanias.ts    # tipos y formato de datos (sin datos: seguro para el cliente)
 │   │   ├── tramites.ts       # trámites, duraciones y requisitos
 │   │   ├── turnero.ts        # agenda, disponibilidad, bloqueos, CSV, links
 │   │   └── selftest.ts       # autoprueba compartida (tests y navegador)
 │   ├── scripts/              # TypeScript del cliente, sin frameworks
 │   │   ├── main.ts / app.ts  # arranque
-│   │   ├── office.ts         # #slug, ?e=slug o ruta /[slug]
+│   │   ├── office.ts         # textos de la escribanía de esta página
 │   │   ├── booking.ts  mis.ts  panel.ts  chat.ts  tabs.ts  dom.ts
-│   └── styles/global.css     # estilos (paleta azul notarial + dorado)
+│   └── styles/global.css     # estilos (concepto "Protocolo", ver DESIGN.md)
+├── tools/                    # assign-tokens.mjs, check-isolation.mjs
 └── test/
 ```
 
@@ -98,9 +100,10 @@ En el navegador también podés abrir la página con `?selftest` o ejecutar `sel
    ```
 
    - `slug`: minúsculas, números y guiones; tiene que ser único.
-   - `colores` (opcional): `"#primario,#acento"` para personalizar la paleta. Dejalo `""` para usar la paleta por defecto.
+   - Todas las páginas usan el mismo tema notarial (azul, marfil y dorado); se personalizan sólo con los datos de texto.
 
-2. `npm test` valida los datos y `npm run build` genera `/escribania-perez/`. También funciona `/#escribania-perez` y `/?e=escribania-perez`.
+2. `npm run tokens` le asigna un token a cada escribanía nueva (los existentes no cambian). Con `-- --site https://tu-sitio --csv ../urls.csv` además escribe el mapeo privado nombre,slug,url (no lo subas a ningún repo).
+3. `npm test` valida los datos, `npm run build` genera `/e/escribania-perez-<token>/` y `npm run check:isolation` verifica que ninguna página ni archivo JS revele otra escribanía.
 
 Los trámites y sus requisitos se editan en `src/lib/tramites.ts`; los horarios de atención (`SLOTS`) en `src/lib/turnero.ts`.
 
@@ -114,13 +117,18 @@ Importá el repo en Vercel. Detecta Astro solo: build `npm run build`, salida `d
 
 ### Netlify
 
-Importá el repo con build command `npm run build` y publish directory `dist` (o agregá un `netlify.toml`):
+El sitio de producción (`turnos-escribanias-tucuman.netlify.app`) se publica solo en cada push a `main`. La configuración está en `netlify.toml`:
 
 ```toml
 [build]
   command = "npm run build"
   publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
 ```
+
+Los tokens de `src/data/escribanias.json` son fijos: no los cambies, o las URLs ya enviadas dejan de funcionar.
 
 ### GitHub Pages
 

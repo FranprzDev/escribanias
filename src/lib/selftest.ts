@@ -8,11 +8,11 @@ export interface Resultado {
   pass: boolean;
 }
 
-export function runSelfTest(data: Escribania[], now: Date = new Date()): Resultado[] {
+export function runSelfTest(office: Escribania | null, now: Date = new Date()): Resultado[] {
   const out: Resultado[] = [];
   const ok = (test: string, pass: unknown) => out.push({ test, pass: !!pass });
   try {
-    const s = createStore(data, now);
+    const s = createStore(office, now);
     const d = s.DAYS[0];
     const free = s.freeSlots(d)[0];
     s.addBooking({ code: "ESC-T001", tramite: "Poder", day: d, time: free, nombre: 'Test "Uno"', wa: "3810000000" });
@@ -59,12 +59,10 @@ export function runSelfTest(data: Escribania[], now: Date = new Date()): Resulta
 
     ok("Validación de datos", RULES.nombre[0]("Ana Pérez") && !RULES.nombre[0]("Ana") && RULES.dni[0]("30.123.456") && !RULES.dni[0]("123") && RULES.wa[0]("381 5123456") && RULES.email[0]("a@b.com") && !RULES.email[0]("a@b"));
 
-    s.setOffice("");
-    ok("Sin slug: nombre por defecto", s.officeName() === "Escribanía Demo" && s.titular() === "Escribano/a titular");
-    s.setOffice("no-existe");
-    ok("Slug desconocido: nombre por defecto", s.officeName() === "Escribanía Demo");
-    ok(`Los ${data.length} slugs se resuelven`, data.every((o) => s.setOffice(o.slug) && s.officeName() === o.nombre));
-    ok("Slugs únicos", new Set(data.map((o) => o.slug)).size === data.length);
+    if (office) ok("Nombre de la escribanía", s.officeName() === office.nombre && s.titular() === (office.titular || "Escribano/a titular"));
+    else ok("Sin escribanía: nombre por defecto", s.officeName() === "Escribanía Demo" && s.titular() === "Escribano/a titular");
+    const demo = createStore(null, now);
+    ok("Demo general sin datos de escribanías", demo.office === null && demo.officeName() === "Escribanía Demo");
   } catch (err) {
     ok("Sin errores: " + (err as Error).message, false);
   }

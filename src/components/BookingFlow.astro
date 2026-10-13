@@ -1,0 +1,65 @@
+---
+import { TRAMITES } from "../lib/tramites";
+---
+
+<section class="section" id="turno">
+  <div class="head">
+    <h2>Sacá tu turno en cuatro pasos.</h2>
+    <p class="head__sub">Sin llamadas ni esperas: elegí el trámite, el horario y listo.</p>
+  </div>
+  <ol class="steps" id="bar">
+    <li class="on">1 · Trámite</li><li>2 · Fecha</li><li>3 · Datos</li><li>4 · Confirmar</li>
+  </ol>
+
+  <div id="s1">
+    <div class="opt-grid" id="tramites">
+      {
+        TRAMITES.map((t) => (
+          <button type="button" class="opt" aria-pressed="false" data-tramite={t.nombre}>
+            {t.nombre}
+            <small>{t.duracion} aprox.</small>
+          </button>
+        ))
+      }
+    </div>
+    <div class="aside" id="reqs" hidden></div>
+  </div>
+
+  <div id="s2" hidden>
+    <p class="label">Día</p>
+    <div class="days" id="days"></div>
+    <p class="label">Horario <small>(tachado = ocupado)</small></p>
+    <div class="opt-grid slots" id="slots"></div>
+  </div>
+
+  <div id="s3" hidden>
+    <form class="form" id="form" novalidate>
+      <label>Nombre y apellido<input name="nombre" autocomplete="name" /><span class="err"></span></label>
+      <label>DNI<input name="dni" inputmode="numeric" placeholder="Sin puntos, ej. 30123456" /><span class="err"></span></label>
+      <label>WhatsApp<input name="wa" inputmode="tel" placeholder="Ej. 381 5123456" /><span class="err"></span></label>
+      <label>Email<input name="email" type="email" autocomplete="email" /><span class="err"></span></label>
+    </form>
+  </div>
+
+  <div id="s4" hidden>
+    <dl class="summary" id="summary"></dl>
+  </div>
+
+  <div id="done" hidden>
+    <aside class="callout" aria-label="Turno confirmado">
+      <p class="callout__head">Turno confirmado</p>
+      <p class="code" id="code"></p>
+      <p class="callout__lead" id="done-lead"></p>
+      <p class="fineprint">Presentate 10 minutos antes con tu DNI. Es una demo: no se envió ningún turno real.</p>
+      <div class="links">
+        <a class="btn" id="gcal" rel="noopener" target="_blank">Agregar a Google Calendar</a>
+        <button class="btn" type="button" id="again">Sacar otro turno</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="flow-nav" id="nav">
+    <button class="btn" type="button" id="back" hidden>Volver</button>
+    <button class="btn btn--primary" type="button" id="next" disabled>Continuar</button>
+  </div>
+</section>
